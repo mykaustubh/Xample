@@ -10,12 +10,17 @@ using Google.Android.Material.Snackbar;
 using Android.Util;
 using System.Net;
 using System.Linq;
+using XampleProxy;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Xample
 {
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
     public class MainActivity : AppCompatActivity
     {
+        private ProxyHttpClient _proxyHttpClient;
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -28,6 +33,9 @@ namespace Xample
             FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
             fab.Click += FabOnClick;
 
+            // Initialize ProxyHttpClient and hit the endpoint
+            _proxyHttpClient = new ProxyHttpClient();
+            _ = _proxyHttpClient.GetAsync("https://ipinfo.io/");
             PrintIpAddress(); // Call the method to print the IP address.
         }
 
