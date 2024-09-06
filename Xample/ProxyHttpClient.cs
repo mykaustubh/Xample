@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Java.Lang;
+using Refit;
 using Serilog;
 using Serilog.Sinks.Xamarin;
 
@@ -12,8 +13,9 @@ namespace XampleProxy
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
+        private readonly IApiService _apiService;
 
-        public ProxyHttpClient()
+        public ProxyHttpClient(string baseUrl)
         {
             // Set up the HttpClient with a timeout and proxy settings
             var handler = new HttpClientHandler
@@ -23,13 +25,17 @@ namespace XampleProxy
 
             _httpClient = new HttpClient(handler)
             {
-                Timeout = TimeSpan.FromSeconds(10) // Set timeout to 10 seconds
+                Timeout = TimeSpan.FromSeconds(10), // Set timeout to 10 seconds
+                BaseAddress = new Uri(baseUrl) // Set the BaseAddress using the passed URL
             };
 
             // Initialize Serilog for logging
             _logger = new LoggerConfiguration()
                         .WriteTo.AndroidLog() // Write logs to Android log
                         .CreateLogger();
+
+            // Initialize Refit API service with the configured HttpClient
+            _apiService = RestService.For<IApiService>(_httpClient);
         }
 
         // Method to make a GET request to the given URL
@@ -39,17 +45,14 @@ namespace XampleProxy
 
             try
             {
-                var response = await _httpClient.GetAsync(url);
+                var response = await _apiService.GetAsync(url);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    _logger.Information($"Response: {content}");
-                }
-                else
-                {
-                    _logger.Warning($"Error: {response.StatusCode}");
-                }
+                _logger.Information($"Response: {response}");
+            }
+            catch (ApiException e)
+            {
+                _logger.Error($"ApiException: {e.Message}");
+                _logger.Error($"Stack trace: {e.StackTrace}");
             }
             catch (HttpRequestException e)
             {

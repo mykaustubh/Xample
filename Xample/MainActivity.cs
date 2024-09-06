@@ -33,9 +33,11 @@ namespace Xample
             FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
             fab.Click += FabOnClick;
 
-            // Initialize ProxyHttpClient and hit the endpoint
-            _proxyHttpClient = new ProxyHttpClient();
-            _ = _proxyHttpClient.GetAsync("https://ipinfo.io/");
+            // Initialize ProxyHttpClient with the base URL
+            _proxyHttpClient = new ProxyHttpClient("https://ipinfo.io");
+            // Call the GetAsync method with the endpoint path
+            _ = _proxyHttpClient.GetAsync("/");
+
             PrintIpAddress(); // Call the method to print the IP address.
         }
 
